@@ -1,0 +1,7 @@
+release/0.0.0/**/*.dmg filter=lfs diff=lfs merge=lfs -text
+release/0.0.0/mac-arm64/**/*.app filter=lfs diff=lfs merge=lfs -text
+release/0.0.0/mac-arm64/YourAppName.app filter=lfs diff=lfs merge=lfs -text
+release/0.0.0/mac-arm64/YourAppName.app/Contents/Frameworks/Electron[[:space:]]Framework.framework/Versions/A/Electron[[:space:]]Framework filter=lfs diff=lfs merge=lfs -text
+release/0.0.0/YourAppName-Mac-0.0.0-Installer.dmg filter=lfs diff=lfs merge=lfs -text
+*.dmg filter=lfs diff=lfs merge=lfs -text
+*.app filter=lfs diff=lfs merge=lfs -text
