@@ -18,58 +18,39 @@ const App = () => {
     if (scanned) return;
 
     const target = event.target as HTMLInputElement | null;
-    console.log("Input target:", target); // Log ข้อมูลที่พิมพ์ใน input
     if (target && target.value.trim()) {
-      // เพิ่ม log เพื่อดูค่าของ target.value
-
       const newValue = target.value.trim();
-      console.log("Scanned data:", newValue); // Log ข้อมูลที่สแกนเข้าม
-
-      // สมมุติว่า QR Code มีข้อมูลในรูปแบบ "user_id:<user_id>,ticket_code:<ticket_code>,...other_fields"
       const parsedData: QRCodeData = {} as QRCodeData;
       newValue.split(",").forEach((item) => {
         const [key, value] = item.split(":");
         if (key && value) {
-          // ลบเครื่องหมายอัญประกาศหรือ escape characters ออกจากค่า value
-          parsedData[key] = value.replace(/["\\]/g, ""); // ลบ " และ \
+          parsedData[key] = value;
         }
       });
 
-      // เช็คว่าเราสามารถแยกข้อมูลออกมาได้ไหม
-      console.log("Parsed data:", parsedData);
-
-      // เก็บข้อมูลที่แยกแล้วลงใน state
-      setQrCodeData(parsedData);
-
-      // ตั้งค่าสถานะการสแกนว่าเสร็จแล้ว
-      setScanned(true);
-
+      setQrCodeData(parsedData); // อัพเดตข้อมูลที่สแกน
+      setScanned(true); // ตั้งค่าสถานะการสแกนว่าเสร็จแล้ว
       target.value = ""; // ล้างค่าภายใน input หลังจากสแกนแล้ว
-      console.log("Input field cleared"); // Log หลังจากล้างข้อมูลใน input
     }
   };
 
   // ฟังก์ชันสำหรับการคลิกปุ่มปริ้น
   const handlePrint = () => {
     setLoading(true); // เริ่มโหลดเมื่อกดปุ่ม
-    console.log("Printing...");
-
     // จำลองการโหลด 2 วินาที
     setTimeout(() => {
       setLoading(false); // โหลดเสร็จแล้วรีเซ็ตการโหลด
       setQrCodeData(null); // รีเซ็ตข้อมูล QR Code และแสดงข้อความ "กรุณาสแกน QR Code..."
       setScanned(false); // รีเซ็ตสถานะการสแกน
-      console.log("Printing done");
     }, 2000); // 2 วินาที
   };
 
+  // useEffect สำหรับการตั้งค่า Event Listener และการทำงานเมื่อ qrCodeData เปลี่ยนแปลง
   useEffect(() => {
     const inputField = document.getElementById("scanner-input") as HTMLInputElement;
 
     if (inputField) {
-      // เพิ่ม Event Listener ให้กับ input field สำหรับการฟัง keydown event
       inputField.addEventListener("keydown", handleQRCodeScan);
-      console.log("Event listener added to input field");
 
       // เพิ่มการติดตามว่า input มีโฟกัสหรือไม่
       inputField.onfocus = () => {
@@ -78,8 +59,6 @@ const App = () => {
 
       // เพิ่มการทำให้ input คงโฟกัสอยู่
       inputField.onblur = (e) => {
-        console.log("Input blurred, refocusing");
-        // ใช้ TypeScript assertion ให้มั่นใจว่า e.target เป็น HTMLInputElement
         (e.target as HTMLInputElement).focus();
       };
     }
@@ -88,7 +67,6 @@ const App = () => {
     return () => {
       if (inputField) {
         inputField.removeEventListener("keydown", handleQRCodeScan);
-        console.log("Event listener removed from input field");
       }
     };
   }, [scanned]); // เพิ่ม dependancy เพื่อให้ useEffect อัปเดตเมื่อ `scanned` เปลี่ยนแปลง
