@@ -21,11 +21,16 @@ const App = () => {
     if (target && target.value.trim()) {
       const newValue = target.value.trim();
       console.log("QR Code scanned:", newValue); // ตรวจสอบข้อมูลที่ถูกสแกน
+
       const parsedData: QRCodeData = {} as QRCodeData;
       newValue.split(",").forEach((item) => {
         const [key, value] = item.split(":");
+
+        // ลบเครื่องหมายคำพูดซ้อน (กรณีที่มี)
         if (key && value) {
-          parsedData[key] = value;
+          const cleanedKey = key.replace(/"/g, "").trim(); // ลบเครื่องหมายคำพูดจาก key
+          const cleanedValue = value.replace(/"/g, "").trim(); // ลบเครื่องหมายคำพูดจาก value
+          parsedData[cleanedKey] = cleanedValue;
         }
       });
 
