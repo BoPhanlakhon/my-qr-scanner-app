@@ -18,17 +18,24 @@ const App = () => {
     if (scanned) return;
 
     const target = event.target as HTMLInputElement | null;
+    console.log("Input target:", target); // Log ข้อมูลที่พิมพ์ใน input
     if (target && target.value.trim()) {
+      // เพิ่ม log เพื่อดูค่าของ target.value
+
       const newValue = target.value.trim();
       console.log("Scanned data:", newValue); // Log ข้อมูลที่สแกนเข้าม
 
-      // สมมุติว่าคุณได้แยกข้อมูลจาก QR Code แล้วเป็น user_id และ ticket_code
       // สมมุติว่า QR Code มีข้อมูลในรูปแบบ "user_id:<user_id>,ticket_code:<ticket_code>,...other_fields"
-      const parsedData = newValue.split(",").reduce((acc: QRCodeData, item: string) => {
+      const parsedData: QRCodeData = {} as QRCodeData;
+      newValue.split(",").forEach((item) => {
         const [key, value] = item.split(":");
-        if (key && value) acc[key] = value;
-        return acc;
-      }, {} as QRCodeData);
+        if (key && value) {
+          parsedData[key] = value;
+        }
+      });
+
+      // เช็คว่าเราสามารถแยกข้อมูลออกมาได้ไหม
+      console.log("Parsed data:", parsedData);
 
       // เก็บข้อมูลที่แยกแล้วลงใน state
       setQrCodeData(parsedData);
