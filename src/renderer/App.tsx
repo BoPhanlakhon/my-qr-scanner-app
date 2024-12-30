@@ -1,22 +1,58 @@
 import { useState, useEffect } from "react";
 
+// สร้าง interface สำหรับข้อมูลที่คุณต้องการเก็บ
+interface QRCodeData {
+  user_id: string;
+  ticket_code: string;
+  [key: string]: string; // ฟิลด์อื่นๆ ที่อาจจะมีใน QR Code
+}
+
 const App = () => {
-  const [qrCodeData, setQrCodeData] = useState<string>("");
+  const [qrCodeData, setQrCodeData] = useState<QRCodeData | null>(null); // ใช้ interface QRCodeData
+  const [loading, setLoading] = useState(false); // สถานะการโหลด
+  const [scanned, setScanned] = useState(false); // สถานะการสแกนว่าเสร็จหรือยัง
 
   // ฟังก์ชันจัดการเมื่อมีการสแกน QR Code
   const handleQRCodeScan = (event: KeyboardEvent) => {
+    // ถ้ามีข้อมูลแล้วไม่ให้สแกนซ้ำ
+    if (scanned) return;
+
     const target = event.target as HTMLInputElement | null;
     if (target && target.value.trim()) {
       const newValue = target.value.trim();
-      console.log("Scanned data:", newValue); // Log ข้อมูลที่สแกนเข้ามา
-      // เพิ่มข้อมูลที่สแกนเข้ามาไปใน qrCodeData ที่สะสมข้อมูลอยู่แล้ว
-      setQrCodeData((prevData) => {
-        console.log("Previous data:", prevData); // Log ข้อมูลก่อนหน้านี้
-        return prevData + newValue;
-      });
+      console.log("Scanned data:", newValue); // Log ข้อมูลที่สแกนเข้าม
+
+      // สมมุติว่าคุณได้แยกข้อมูลจาก QR Code แล้วเป็น user_id และ ticket_code
+      // สมมุติว่า QR Code มีข้อมูลในรูปแบบ "user_id:<user_id>,ticket_code:<ticket_code>,...other_fields"
+      const parsedData = newValue.split(",").reduce((acc: QRCodeData, item: string) => {
+        const [key, value] = item.split(":");
+        if (key && value) acc[key] = value;
+        return acc;
+      }, {} as QRCodeData);
+
+      // เก็บข้อมูลที่แยกแล้วลงใน state
+      setQrCodeData(parsedData);
+
+      // ตั้งค่าสถานะการสแกนว่าเสร็จแล้ว
+      setScanned(true);
+
       target.value = ""; // ล้างค่าภายใน input หลังจากสแกนแล้ว
       console.log("Input field cleared"); // Log หลังจากล้างข้อมูลใน input
     }
+  };
+
+  // ฟังก์ชันสำหรับการคลิกปุ่มปริ้น
+  const handlePrint = () => {
+    setLoading(true); // เริ่มโหลดเมื่อกดปุ่ม
+    console.log("Printing...");
+
+    // จำลองการโหลด 2 วินาที
+    setTimeout(() => {
+      setLoading(false); // โหลดเสร็จแล้วรีเซ็ตการโหลด
+      setQrCodeData(null); // รีเซ็ตข้อมูล QR Code และแสดงข้อความ "กรุณาสแกน QR Code..."
+      setScanned(false); // รีเซ็ตสถานะการสแกน
+      console.log("Printing done");
+    }, 2000); // 2 วินาที
   };
 
   useEffect(() => {
@@ -47,7 +83,7 @@ const App = () => {
         console.log("Event listener removed from input field");
       }
     };
-  }, []);
+  }, [scanned]); // เพิ่ม dependancy เพื่อให้ useEffect อัปเดตเมื่อ `scanned` เปลี่ยนแปลง
 
   return (
     <div style={{ textAlign: "center" }}>
@@ -68,8 +104,16 @@ const App = () => {
       {qrCodeData ? (
         <div>
           <h2>QR Code Data:</h2>
-          <pre>{qrCodeData}</pre>
+          <hr />
+          <p>User ID: {qrCodeData.user_id}</p> {/* แสดงแค่ user_id */}
+          <p>Ticket Code: {qrCodeData.ticket_code}</p> {/* แสดงแค่ ticket_code */}
+          {/* ปุ่มปริ้นจะปรากฏขึ้นเมื่อมี qrCodeData */}
+          <button onClick={handlePrint} disabled={loading}>
+            {loading ? "กำลังปริ้น..." : "ปริ้น QR Code"}
+          </button>
         </div>
+      ) : loading ? (
+        <p>กำลังโหลด... กรุณารอสักครู่</p> // แสดงข้อความโหลดระหว่างรอ
       ) : (
         <p>กรุณาสแกน QR Code...</p>
       )}
