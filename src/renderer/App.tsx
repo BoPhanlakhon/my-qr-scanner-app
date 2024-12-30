@@ -20,6 +20,7 @@ const App = () => {
     const target = event.target as HTMLInputElement | null;
     if (target && target.value.trim()) {
       const newValue = target.value.trim();
+      console.log("QR Code scanned:", newValue); // ตรวจสอบข้อมูลที่ถูกสแกน
       const parsedData: QRCodeData = {} as QRCodeData;
       newValue.split(",").forEach((item) => {
         const [key, value] = item.split(":");
@@ -28,6 +29,7 @@ const App = () => {
         }
       });
 
+      console.log("Parsed Data:", parsedData); // ตรวจสอบข้อมูลที่แปลงแล้ว
       setQrCodeData(parsedData); // อัพเดตข้อมูลที่สแกน
       setScanned(true); // ตั้งค่าสถานะการสแกนว่าเสร็จแล้ว
       target.value = ""; // ล้างค่าภายใน input หลังจากสแกนแล้ว
@@ -91,8 +93,8 @@ const App = () => {
         <div>
           <h2>QR Code Data:</h2>
           <hr />
-          <p>User ID: {qrCodeData.user_id}</p> {/* แสดงแค่ user_id */}
-          <p>Ticket Code: {qrCodeData.ticket_code}</p> {/* แสดงแค่ ticket_code */}
+          <p>User ID: {qrCodeData.user_id || "ไม่พบข้อมูล user_id"}</p> {/* แสดงแค่ user_id */}
+          <p>Ticket Code: {qrCodeData.ticket_code || "ไม่พบข้อมูล ticket_code"}</p> {/* แสดงแค่ ticket_code */}
           {/* ปุ่มปริ้นจะปรากฏขึ้นเมื่อมี qrCodeData */}
           <button onClick={handlePrint} disabled={loading}>
             {loading ? "กำลังปริ้น..." : "ปริ้น QR Code"}
