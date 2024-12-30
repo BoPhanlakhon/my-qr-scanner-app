@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 interface QRCodeData {
   user_id: string;
   ticket_code: string;
+  expired_time_stamp: string;
+  secret_text: string;
   [key: string]: string; // ฟิลด์อื่นๆ ที่อาจจะมีใน QR Code
 }
 
@@ -22,22 +24,16 @@ const App = () => {
       const newValue = target.value.trim();
       console.log("QR Code scanned:", newValue); // ตรวจสอบข้อมูลที่ถูกสแกน
 
-      const parsedData: QRCodeData = {} as QRCodeData;
-      newValue.split(",").forEach((item) => {
-        const [key, value] = item.split(":");
-
-        // ลบเครื่องหมายคำพูดซ้อน (กรณีที่มี)
-        if (key && value) {
-          const cleanedKey = key.replace(/"/g, "").trim(); // ลบเครื่องหมายคำพูดจาก key
-          const cleanedValue = value.replace(/"/g, "").trim(); // ลบเครื่องหมายคำพูดจาก value
-          parsedData[cleanedKey] = cleanedValue;
-        }
-      });
-
-      console.log("Parsed Data:", parsedData); // ตรวจสอบข้อมูลที่แปลงแล้ว
-      setQrCodeData(parsedData); // อัพเดตข้อมูลที่สแกน
-      setScanned(true); // ตั้งค่าสถานะการสแกนว่าเสร็จแล้ว
-      target.value = ""; // ล้างค่าภายใน input หลังจากสแกนแล้ว
+      try {
+        // แปลงข้อมูลจาก QR Code เป็น JSON
+        const parsedData: QRCodeData = JSON.parse(newValue);
+        console.log("Parsed Data:", parsedData); // ตรวจสอบข้อมูลที่แปลงแล้ว
+        setQrCodeData(parsedData); // อัพเดตข้อมูลที่สแกน
+        setScanned(true); // ตั้งค่าสถานะการสแกนว่าเสร็จแล้ว
+        target.value = ""; // ล้างค่าภายใน input หลังจากสแกนแล้ว
+      } catch (error) {
+        console.error("Error parsing QR Code data:", error); // แจ้ง error ถ้าไม่สามารถแปลง JSON ได้
+      }
     }
   };
 
@@ -59,15 +55,15 @@ const App = () => {
     if (inputField) {
       inputField.addEventListener("keydown", handleQRCodeScan);
 
-      // เพิ่มการติดตามว่า input มีโฟกัสหรือไม่
-      inputField.onfocus = () => {
-        console.log("Input focused");
-      };
+      // เพิ่มการทำให้ input คงโฟกัสอยู่เสมอ
+      const focusInput = () => inputField.focus();
+      inputField.onfocus = focusInput;
+      inputField.onblur = focusInput; // คงโฟกัส input ไว้ตลอด
 
-      // เพิ่มการทำให้ input คงโฟกัสอยู่
-      inputField.onblur = (e) => {
-        (e.target as HTMLInputElement).focus();
-      };
+      // รีเซ็ตสถานะ `scanned` เมื่อมีการเริ่มต้นการสแกนใหม่
+      if (!scanned) {
+        inputField.focus(); // แน่ใจว่า input จะได้รับโฟกัสเพื่อให้สแกนใหม่ได้
+      }
     }
 
     // ลบ Event Listener เมื่อ Component ถูก Unmount
