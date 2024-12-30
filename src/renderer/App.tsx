@@ -20,9 +20,12 @@ const App = () => {
 
     const target = event.target as HTMLInputElement | null;
     if (target && event.key === "Enter" && target.value.trim()) {
+      console.log("target.value:", target.value);
       const newValue = target.value.trim();
+      console.log("target.value.trim():", target.value.trim());
       try {
         const parsedData: QRCodeData = JSON.parse(newValue);
+        console.log("parsedData:", parsedData);
         setQrCodeData(parsedData);
         setScanned(true);
         target.value = ""; // ล้างค่าหลังสแกน
