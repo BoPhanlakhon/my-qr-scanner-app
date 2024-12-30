@@ -1,108 +1,79 @@
 import { useState, useEffect } from "react";
 
-// สร้าง interface สำหรับข้อมูลที่คุณต้องการเก็บ
+// สร้าง interface สำหรับข้อมูล QR Code
 interface QRCodeData {
   user_id: string;
   ticket_code: string;
   expired_time_stamp: string;
   secret_text: string;
-  [key: string]: string; // ฟิลด์อื่นๆ ที่อาจจะมีใน QR Code
+  [key: string]: string; // ฟิลด์เพิ่มเติม
 }
 
 const App = () => {
-  const [qrCodeData, setQrCodeData] = useState<QRCodeData | null>(null); // ใช้ interface QRCodeData
-  const [loading, setLoading] = useState(false); // สถานะการโหลด
-  const [scanned, setScanned] = useState(false); // สถานะการสแกนว่าเสร็จหรือยัง
+  const [qrCodeData, setQrCodeData] = useState<QRCodeData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [scanned, setScanned] = useState(false);
 
-  // ฟังก์ชันจัดการเมื่อมีการสแกน QR Code
+  // ใช้ Enter เป็นตัวบอกจบข้อมูล
   const handleQRCodeScan = (event: KeyboardEvent) => {
-    // ถ้ามีข้อมูลแล้วไม่ให้สแกนซ้ำ
-    if (scanned) return;
+    if (scanned) return; // ป้องกันการสแกนซ้ำ
 
     const target = event.target as HTMLInputElement | null;
-    if (target && target.value.trim()) {
+    if (target && event.key === "Enter" && target.value.trim()) {
       const newValue = target.value.trim();
-      console.log("QR Code scanned:", newValue); // ตรวจสอบข้อมูลที่ถูกสแกน
-
       try {
-        // แปลงข้อมูลจาก QR Code เป็น JSON
         const parsedData: QRCodeData = JSON.parse(newValue);
-        console.log("Parsed Data:", parsedData); // ตรวจสอบข้อมูลที่แปลงแล้ว
-        setQrCodeData(parsedData); // อัพเดตข้อมูลที่สแกน
-        setScanned(true); // ตั้งค่าสถานะการสแกนว่าเสร็จแล้ว
-        target.value = ""; // ล้างค่าภายใน input หลังจากสแกนแล้ว
+        setQrCodeData(parsedData);
+        setScanned(true);
+        target.value = ""; // ล้างค่าหลังสแกน
       } catch (error) {
-        console.error("Error parsing QR Code data:", error); // แจ้ง error ถ้าไม่สามารถแปลง JSON ได้
+        console.error("Error parsing QR Code data:", error);
       }
     }
   };
 
-  // ฟังก์ชันสำหรับการคลิกปุ่มปริ้น
   const handlePrint = () => {
-    setLoading(true); // เริ่มโหลดเมื่อกดปุ่ม
-    // จำลองการโหลด 2 วินาที
+    setLoading(true);
     setTimeout(() => {
-      setLoading(false); // โหลดเสร็จแล้วรีเซ็ตการโหลด
-      setQrCodeData(null); // รีเซ็ตข้อมูล QR Code และแสดงข้อความ "กรุณาสแกน QR Code..."
-      setScanned(false); // รีเซ็ตสถานะการสแกน
-    }, 2000); // 2 วินาที
+      setLoading(false);
+      setQrCodeData(null);
+      setScanned(false);
+    }, 2000);
   };
 
-  // useEffect สำหรับการตั้งค่า Event Listener และการทำงานเมื่อ qrCodeData เปลี่ยนแปลง
   useEffect(() => {
     const inputField = document.getElementById("scanner-input") as HTMLInputElement;
 
     if (inputField) {
       inputField.addEventListener("keydown", handleQRCodeScan);
 
-      // เพิ่มการทำให้ input คงโฟกัสอยู่เสมอ
       const focusInput = () => inputField.focus();
       inputField.onfocus = focusInput;
-      inputField.onblur = focusInput; // คงโฟกัส input ไว้ตลอด
+      inputField.onblur = focusInput;
 
-      // รีเซ็ตสถานะ `scanned` เมื่อมีการเริ่มต้นการสแกนใหม่
-      if (!scanned) {
-        inputField.focus(); // แน่ใจว่า input จะได้รับโฟกัสเพื่อให้สแกนใหม่ได้
-      }
+      if (!scanned) inputField.focus();
     }
 
-    // ลบ Event Listener เมื่อ Component ถูก Unmount
     return () => {
-      if (inputField) {
-        inputField.removeEventListener("keydown", handleQRCodeScan);
-      }
+      if (inputField) inputField.removeEventListener("keydown", handleQRCodeScan);
     };
-  }, [scanned]); // เพิ่ม dependancy เพื่อให้ useEffect อัปเดตเมื่อ `scanned` เปลี่ยนแปลง
+  }, [scanned]);
 
   return (
     <div style={{ textAlign: "center" }}>
       <h1>QR Code Scanner</h1>
-
-      {/* Hidden Input สำหรับรับข้อมูลจากเครื่องสแกน */}
-      <input
-        id="scanner-input"
-        type="text"
-        style={{
-          position: "absolute",
-          opacity: 0,
-          pointerEvents: "none", // ป้องกันไม่ให้ผู้ใช้คลิกได้
-        }}
-        autoFocus
-      />
-
+      <input id="scanner-input" type="text" style={{ position: "absolute", opacity: 0, pointerEvents: "none" }} autoFocus />
       {qrCodeData ? (
         <div>
           <h2>QR Code Data:</h2>
-          <hr />
-          <p>User ID: {qrCodeData.user_id || "ไม่พบข้อมูล user_id"}</p> {/* แสดงแค่ user_id */}
-          <p>Ticket Code: {qrCodeData.ticket_code || "ไม่พบข้อมูล ticket_code"}</p> {/* แสดงแค่ ticket_code */}
-          {/* ปุ่มปริ้นจะปรากฏขึ้นเมื่อมี qrCodeData */}
+          <p>User ID: {qrCodeData.user_id || "ไม่พบข้อมูล user_id"}</p>
+          <p>Ticket Code: {qrCodeData.ticket_code || "ไม่พบข้อมูล ticket_code"}</p>
           <button onClick={handlePrint} disabled={loading}>
             {loading ? "กำลังปริ้น..." : "ปริ้น QR Code"}
           </button>
         </div>
       ) : loading ? (
-        <p>กำลังโหลด... กรุณารอสักครู่</p> // แสดงข้อความโหลดระหว่างรอ
+        <p>กำลังโหลด... กรุณารอสักครู่</p>
       ) : (
         <p>กรุณาสแกน QR Code...</p>
       )}
