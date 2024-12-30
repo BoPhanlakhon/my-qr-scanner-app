@@ -4,10 +4,10 @@ const App = () => {
   const [qrCodeData, setQrCodeData] = useState<string | null>(null);
 
   // ฟังก์ชันจัดการเมื่อมีการสแกน QR Code
-  const handleQRCodeScan = (event: Event) => {
-    const target = event.target as HTMLInputElement; // แปลง event.target ให้เป็น HTMLInputElement
-    const scannedData = target.value.trim();
-    if (scannedData) {
+  const handleQRCodeScan = (event: KeyboardEvent) => {
+    const target = event.target as HTMLInputElement | null;
+    if (target && target.value.trim()) {
+      const scannedData = target.value.trim();
       setQrCodeData(scannedData);
       target.value = ""; // ล้างค่าใน input เพื่อพร้อมรับข้อมูลใหม่
     }
@@ -17,14 +17,23 @@ const App = () => {
     const inputField = document.getElementById("scanner-input") as HTMLInputElement;
 
     if (inputField) {
-      // เพิ่ม Event Listener
-      inputField.addEventListener("input", handleQRCodeScan);
+      // เพิ่ม Event Listener ให้กับ input field สำหรับการฟัง keydown event
+      inputField.addEventListener("keydown", handleQRCodeScan);
+
+      // เพิ่มการติดตามว่า input มีโฟกัสหรือไม่
+      inputField.onfocus = () => console.log("Input focused");
+
+      // เพิ่มการทำให้ input คงโฟกัสอยู่
+      inputField.onblur = (e) => {
+        // ใช้ TypeScript assertion ให้มั่นใจว่า e.target เป็น HTMLInputElement
+        (e.target as HTMLInputElement).focus();
+      };
     }
 
     // ลบ Event Listener เมื่อ Component ถูก Unmount
     return () => {
       if (inputField) {
-        inputField.removeEventListener("input", handleQRCodeScan);
+        inputField.removeEventListener("keydown", handleQRCodeScan);
       }
     };
   }, []);
@@ -34,7 +43,16 @@ const App = () => {
       <h1>QR Code Scanner</h1>
 
       {/* Hidden Input สำหรับรับข้อมูลจากเครื่องสแกน */}
-      <input id="scanner-input" type="text" style={{ position: "absolute", opacity: 0, pointerEvents: "none" }} autoFocus />
+      <input
+        id="scanner-input"
+        type="text"
+        style={{
+          position: "absolute",
+          opacity: 0,
+          pointerEvents: "none", // ป้องกันไม่ให้ผู้ใช้คลิกได้
+        }}
+        autoFocus
+      />
 
       {qrCodeData ? (
         <div>
@@ -49,73 +67,3 @@ const App = () => {
 };
 
 export default App;
-
-// import { useRef, useEffect, useState } from "react";
-// import jsQR from "jsqr";
-
-// const App = () => {
-//   const videoRef = useRef<HTMLVideoElement>(null);
-//   const [qrCodeData, setQrCodeData] = useState<string | null>(null);
-
-//   useEffect(() => {
-//     const startCamera = async () => {
-//       try {
-//         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-//         if (videoRef.current) {
-//           videoRef.current.srcObject = stream;
-//           videoRef.current.play();
-//         }
-//       } catch (error) {
-//         console.error("ไม่สามารถเข้าถึงกล้องได้: ", error);
-//       }
-//     };
-
-//     startCamera();
-
-//     const interval = setInterval(() => {
-//       scanQRCode();
-//     }, 500); // สแกนทุก 500 มิลลิวินาที
-
-//     return () => clearInterval(interval);
-//   }, []);
-
-//   const scanQRCode = () => {
-//     if (videoRef.current) {
-//       const canvas = document.createElement("canvas");
-//       const context = canvas.getContext("2d");
-//       const video = videoRef.current;
-
-//       if (context) {
-//         canvas.width = video.videoWidth;
-//         canvas.height = video.videoHeight;
-//         context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-//         const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-//         const qrCode = jsQR(imageData.data, imageData.width, imageData.height);
-
-//         if (qrCode) {
-//           if (qrCode.data !== qrCodeData) {
-//             setQrCodeData(qrCode.data);
-//           }
-//         }
-//       }
-//     }
-//   };
-
-//   return (
-//     <div style={{ textAlign: "center" }}>
-//       <h1>QR Code Scanner</h1>
-//       <video ref={videoRef} style={{ width: "100%", maxWidth: "500px", border: "1px solid black" }}></video>
-//       {qrCodeData ? (
-//         <div>
-//           <h2>QR Code Data:</h2>
-//           <p>{qrCodeData}</p>
-//         </div>
-//       ) : (
-//         <p>กรุณานำ QR Code มาใกล้กล้อง...</p>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default App;
