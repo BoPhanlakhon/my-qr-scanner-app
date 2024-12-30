@@ -16,9 +16,17 @@ const App = () => {
 
   // ใช้ Enter เป็นตัวบอกจบข้อมูล
   const handleQRCodeScan = (event: KeyboardEvent) => {
-    if (scanned) return; // ป้องกันการสแกนซ้ำ
-
     const target = event.target as HTMLInputElement | null;
+
+    if (scanned) {
+      if (target) {
+        console.log("is scanned target.value:", target.value);
+        target.value = "";
+      }
+
+      return; // ป้องกันการสแกนซ้ำ
+    }
+
     if (target && event.key === "Enter" && target.value.trim()) {
       console.log("target.value:", target.value);
       const newValue = target.value.trim();
