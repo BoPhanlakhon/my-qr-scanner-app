@@ -7,8 +7,19 @@ const App = () => {
   const handleQRCodeScan = (event: KeyboardEvent) => {
     const target = event.target as HTMLInputElement | null;
     if (target && target.value.trim()) {
-      const scannedData = target.value.trim();
-      setQrCodeData(scannedData);
+      // ตรวจสอบว่าเป็น object หรือ string
+      try {
+        const scannedData = JSON.parse(target.value.trim()); // พยายามแปลงข้อมูลเป็น object
+        // ถ้าแปลงเป็น object สำเร็จ
+        if (scannedData && typeof scannedData === "object") {
+          // ตัวอย่างการดึงข้อมูลจาก object
+          console.log("Scanned Data:", scannedData);
+          setQrCodeData(JSON.stringify(scannedData, null, 2)); // แสดงข้อมูลในรูปแบบ JSON string (จัดรูปแบบ)
+        }
+      } catch (error) {
+        // ถ้าไม่สามารถแปลงเป็น object, แสดงข้อมูลเป็น string
+        setQrCodeData(target.value.trim());
+      }
       target.value = ""; // ล้างค่าใน input เพื่อพร้อมรับข้อมูลใหม่
     }
   };
@@ -57,7 +68,8 @@ const App = () => {
       {qrCodeData ? (
         <div>
           <h2>QR Code Data:</h2>
-          <p>{qrCodeData}</p>
+          {/* แสดงข้อมูลจาก QR Code (JSON หรือ string) */}
+          <pre>{qrCodeData}</pre>
         </div>
       ) : (
         <p>กรุณาสแกน QR Code...</p>
