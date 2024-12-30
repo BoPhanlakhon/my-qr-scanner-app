@@ -30,7 +30,8 @@ const App = () => {
       newValue.split(",").forEach((item) => {
         const [key, value] = item.split(":");
         if (key && value) {
-          parsedData[key] = value;
+          // ลบเครื่องหมายอัญประกาศหรือ escape characters ออกจากค่า value
+          parsedData[key] = value.replace(/["\\]/g, ""); // ลบ " และ \
         }
       });
 
